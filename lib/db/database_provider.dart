@@ -66,6 +66,30 @@ class DatabaseProvider {
     return foodList;
   }
 
+  Future<List<Food>> getFoodsfrom(String market) async {
+    List<Food> foodList = List<Food>();
+    final db4 = await database4;
+    var foods;
+    if (market == "Todo") {
+      foods = await db4.query(TABLE_FOOD,
+          columns: [COLUMN_ID, COLUMN_NAME, COLUMN_QUANTITY, COLUMN_SUPER]);
+    } else {
+      String whereString = '${COLUMN_SUPER} = ?';
+      List<dynamic> whereArguments = [market];
+      foods = await db4.query(TABLE_FOOD,
+          columns: [COLUMN_ID, COLUMN_NAME, COLUMN_QUANTITY, COLUMN_SUPER],
+          where: whereString,
+          whereArgs: whereArguments);
+    }
+    foods.forEach((currentFood) {
+      Food food = Food.fromMap(currentFood);
+
+      foodList.add(food);
+    });
+
+    return foodList;
+  }
+
   Future<Food> insert(Food food) async {
     final db4 = await database4;
     food.id = await db4.insert(TABLE_FOOD, food.toMap());

@@ -16,14 +16,62 @@ class FoodList extends StatefulWidget {
 }
 
 class _FoodListState extends State<FoodList> {
+  String _market = "Todo";
   @override
   void initState() {
     super.initState();
+
     DatabaseProvider.db4.getFoods().then(
       (foodList) {
         BlocProvider.of<FoodBloc>(context).add(SetFoods(foodList));
       },
     );
+  }
+
+  Widget _bSupermarket() {
+    return Container(
+        padding: EdgeInsets.all(10),
+        child: DropdownButton<String>(
+            value: _market,
+            style: TextStyle(
+                color: Colors.white, fontSize: 26, fontWeight: FontWeight.bold),
+            dropdownColor: Colors.black,
+            items: [
+              DropdownMenuItem(
+                child: Text("Todo"),
+                value: "Todo",
+              ),
+              DropdownMenuItem(
+                child: Text("Mercadona"),
+                value: "Mercadona",
+              ),
+              DropdownMenuItem(
+                child: Text("Hiperdino"),
+                value: "Hiperdino",
+              ),
+              DropdownMenuItem(
+                child: Text("Frutería"),
+                value: "Frutería",
+              ),
+              DropdownMenuItem(
+                child: Text("Carrefour"),
+                value: "Carrefour",
+              ),
+              DropdownMenuItem(
+                child: Text("Otros"),
+                value: "Otros",
+              ),
+            ],
+            onChanged: (value) {
+              setState(() {
+                _market = value;
+                DatabaseProvider.db4.getFoodsfrom(_market).then(
+                  (foodList) {
+                    BlocProvider.of<FoodBloc>(context).add(SetFoods(foodList));
+                  },
+                );
+              });
+            }));
   }
 
   showFoodDialog(BuildContext context, Food food, int index) {
@@ -82,34 +130,46 @@ class _FoodListState extends State<FoodList> {
             fit: BoxFit.cover,
           ),
         ),
-        child: BlocConsumer<FoodBloc, List<Food>>(
-          builder: (context, foodList) {
-            return ListView.separated(
-              itemBuilder: (BuildContext context, int index) {
-                print("foodList: $foodList");
+        child: Column(
+          children: <Widget>[
+            SizedBox(
+              child: _bSupermarket(),
+              height: 70,
+            ),
+            Expanded(
+              flex: 1,
+              child: BlocConsumer<FoodBloc, List<Food>>(
+                builder: (context, foodList) {
+                  return ListView.separated(
+                    shrinkWrap: true,
+                    itemBuilder: (BuildContext context, int index) {
+                      print("foodList: $foodList");
 
-                Food food = foodList[index];
-                return ListTile(
-                    title: Text(food.name,
-                        style: TextStyle(
-                            fontSize: 30,
-                            color: Colors.white,
-                            backgroundColor: Colors.black)),
-                    subtitle: Text(
-                      "Cantidad: ${food.quantity}\nSuper: ${food.supermarket}",
-                      style: TextStyle(
-                          fontSize: 20,
-                          color: Colors.white,
-                          backgroundColor: Colors.black),
-                    ),
-                    onTap: () => showFoodDialog(context, food, index));
-              },
-              itemCount: foodList.length,
-              separatorBuilder: (BuildContext context, int index) =>
-                  Divider(color: Colors.black),
-            );
-          },
-          listener: (BuildContext context, foodList) {},
+                      Food food = foodList[index];
+                      return ListTile(
+                          title: Text(food.name,
+                              style: TextStyle(
+                                  fontSize: 30,
+                                  color: Colors.white,
+                                  backgroundColor: Colors.black)),
+                          subtitle: Text(
+                            "Cantidad: ${food.quantity}\nSuper: ${food.supermarket}",
+                            style: TextStyle(
+                                fontSize: 20,
+                                color: Colors.white,
+                                backgroundColor: Colors.black),
+                          ),
+                          onTap: () => showFoodDialog(context, food, index));
+                    },
+                    itemCount: foodList.length,
+                    separatorBuilder: (BuildContext context, int index) =>
+                        Divider(color: Colors.black),
+                  );
+                },
+                listener: (BuildContext context, foodList) {},
+              ),
+            ),
+          ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
